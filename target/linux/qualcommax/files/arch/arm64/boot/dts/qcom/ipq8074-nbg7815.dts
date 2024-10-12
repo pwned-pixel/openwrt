@@ -39,6 +39,15 @@
 		};
 	};
 
+	fan: gpio_fan {
+		compatible = "gpio-fan";
+		pinctrl-names = "default";
+		gpios = <&tlmm 21 GPIO_ACTIVE_HIGH>;
+		gpio-fan,speed-map = <0    0>,
+							<4500 1>;
+		#cooling-cells = <2>;
+	};
+
 	thermal-zones {
 		aqr-thermal {
 			polling-delay = <1000>;
