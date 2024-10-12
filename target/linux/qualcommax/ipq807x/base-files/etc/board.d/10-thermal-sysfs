@@ -1,0 +1,19 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+case "$(board_name)" in
+	zyxel,nbg7815)
+		# use sysfs procps-ng-sysctl init.d is not reliable
+		touch /etc/sysfs.d/11-thermal.conf
+		# get correct thermal zone defined in DTS
+		aqr_thermal=$(grep -Ril "aqr-thermal" /sys/class/thermal/thermal_zone*/type | cut -d'/' -f 5)
+		tmp103_thermal=$(grep -Ril "tmp103-thermal" /sys/class/thermal/thermal_zone*/type | cut -d'/' -f 5)
+		# set thermal governor from step_wise to bang_bang
+		trip_type=$(grep -ilR active /sys/class/thermal/thermal*/trip* | cut -d '/' -f 5 | tr '\n' ' ')
+		echo "class/thermal/$aqr_thermal/policy = bang_bang" >> /etc/sysfs.d/10-thermal.conf
+		echo "class/thermal/$tmp103_thermal/policy = bang_bang" >> /etc/sysfs.d/10-thermal.conf
+	;;
+esac
+
+exit 0
