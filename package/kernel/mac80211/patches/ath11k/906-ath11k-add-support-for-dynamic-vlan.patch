@@ -1,0 +1,74 @@
+From: Seevalamuthu Mariappan <quic_seevalam@quicinc.com>
+To: <ath11k@lists.infradead.org>
+Cc: <linux-wireless@vger.kernel.org>,
+	Seevalamuthu Mariappan <quic_seevalam@quicinc.com>
+Subject: [PATCH] ath11k: Add support for dynamic vlan
+Date: Mon, 10 Jan 2022 09:11:30 +0530	[thread overview]
+Message-ID: <1641786090-10232-1-git-send-email-quic_seevalam@quicinc.com> (raw)
+
+Advertise AP-VLAN interface type for vlan support in driver.
+Metadata information in dp_tx is added to notify firmware
+that multicast/broadcast packets are encrypted in software.
+
+Tested-on: IPQ8074 hw2.0 AHB WLAN.HK.2.5.0.1-01073-QCAHKSWPL_SILICONZ-1
+
+Signed-off-by: Seevalamuthu Mariappan <quic_seevalam@quicinc.com>
+---
+ drivers/net/wireless/ath/ath11k/core.c  |  6 +++
+ drivers/net/wireless/ath/ath11k/dp_tx.c | 74 ++++++++++++++++++++++++++++++++-
+ drivers/net/wireless/ath/ath11k/dp_tx.h | 14 +++++++
+ drivers/net/wireless/ath/ath11k/hw.h    |  1 +
+ drivers/net/wireless/ath/ath11k/mac.c   |  5 +++
+ 5 files changed, 98 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath11k/core.c b/drivers/net/wireless/ath/ath11k/core.c
+--- a/drivers/net/wireless/ath/ath11k/core.c
++++ b/drivers/net/wireless/ath/ath11k/core.c
+@@ -86,6 +86,7 @@ static const struct ath11k_hw_params ath11k_hw_params[] = {
+ 		.num_vdevs = 16 + 1,
+ 		.num_peers = 512,
+ 		.supports_suspend = false,
++		.supports_ap_vlan = true,
+ 		.hal_desc_sz = sizeof(struct hal_rx_desc_ipq8074),
+ 		.supports_regdb = false,
+ 		.fix_l1ss = true,
+@@ -150,6 +151,7 @@ static const struct ath11k_hw_params ath11k_hw_params[] = {
+ 		.num_vdevs = 16 + 1,
+ 		.num_peers = 512,
+ 		.supports_suspend = false,
++		.supports_ap_vlan = true,
+ 		.hal_desc_sz = sizeof(struct hal_rx_desc_ipq8074),
+ 		.supports_regdb = false,
+ 		.fix_l1ss = true,
+@@ -213,6 +215,7 @@ static const struct ath11k_hw_params ath11k_hw_params[] = {
+ 		.num_vdevs = 16 + 1,
+ 		.num_peers = 512,
+ 		.supports_suspend = true,
++		.supports_ap_vlan = false,
+ 		.hal_desc_sz = sizeof(struct hal_rx_desc_ipq8074),
+ 		.supports_regdb = true,
+ 		.fix_l1ss = true,
+@@ -276,6 +279,7 @@ static const struct ath11k_hw_params ath11k_hw_params[] = {
+ 		.num_vdevs = 8,
+ 		.num_peers = 128,
+ 		.supports_suspend = false,
++		.supports_ap_vlan = true,
+ 		.hal_desc_sz = sizeof(struct hal_rx_desc_qcn9074),
+ 		.supports_regdb = false,
+ 		.fix_l1ss = true,
+@@ -339,6 +343,7 @@ static const struct ath11k_hw_params ath11k_hw_params[] = {
+ 		.num_vdevs = 16 + 1,
+ 		.num_peers = 512,
+ 		.supports_suspend = true,
++		.supports_ap_vlan = false,
+ 		.hal_desc_sz = sizeof(struct hal_rx_desc_wcn6855),
+ 		.supports_regdb = true,
+ 		.fix_l1ss = false,
+@@ -401,6 +406,7 @@ static const struct ath11k_hw_params ath11k_hw_params[] = {
+ 		.num_vdevs = 16 + 1,
+ 		.num_peers = 512,
+ 		.supports_suspend = true,
++		.supports_ap_vlan = false,
+ 		.hal_desc_sz = sizeof(struct hal_rx_desc_wcn6855),
+ 		.supports_regdb = true,
+ 		.fix_l1ss = false,
