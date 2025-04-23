@@ -1,0 +1,131 @@
+#!/bin/sh
+
+# https://docs.kernel.org/leds/leds-lp55xx.html
+# lp5569 control multi output LED channels such as led current, channel index.
+# they are exposed under: /sys/class/leds/q[1,2]:channel[0-2] resp. under:
+# /sys/devices/platform/soc@0/78b6000.i2c/i2c-0/0-0032/leds/q1:channel[0-2]
+# /sys/devices/platform/soc@0/78b6000.i2c/i2c-0/0-0035/leds/q2:channel[0-2]
+
+printf "Usage: led-ctrl $1 $2 $3\n"
+printf "\n"
+printf "\$1=chip, \$2=channel: q[1,2]:channel[0-2] - e. g. \$1=1 \$2=2 for q1:channel2\n"
+printf "\n"
+printf "for the pattern choose \$3=p[1-24] - e. g. \$3=p22 = solid red\n"
+printf "\n"
+
+led=q$1:channel$2
+
+activate_pattern() {
+	# disable current leds
+	echo '0' > /sys/class/leds/$led/device/run_engine
+	# set active pattern
+	echo "${pattern}" > /sys/class/leds/$led/device/engine1_load
+	# (re-)activate leds
+	echo '1' > /sys/class/leds/$led/device/run_engine
+}
+
+case $3 in
+	p1)
+	pattern=01FF9C0040FF7E0040007E00A001
+	activate_pattern
+	;;
+	p2)
+	pattern=01FF9C0040FF500040005000A001
+	activate_pattern
+	;;
+	p3)
+	pattern=01FF9C0040FF500040005000A001
+	activate_pattern
+	;;
+	p4)
+	pattern=00499C0040FF7E0040007E00A001
+	activate_pattern
+	;;
+	p5)
+	pattern=00499C0040FF500040005000A001
+	activate_pattern
+	;;
+	p6)
+	pattern=00929C0040FF7E0040007E00A001
+	activate_pattern
+	;;
+	p7)
+	pattern=00929C0040FF500040005000A001
+	activate_pattern
+	;;
+	p8)
+	pattern=01249C0040FF7E0040007E00A001
+	activate_pattern
+	;;
+	p9)
+	pattern=01249C0040FF500040005000A001
+	activate_pattern
+	;;
+	p10)
+	pattern=0007003801C09F8040006C006C0006FF6C0005FF6C00A0029F8140006C0006FF6C006C0005FF6C00A0029F82400006FF6C006C006C0005FF6C00A002
+	activate_pattern
+	;;
+	p11)
+	pattern=01C0003800079F80400006FF6C006C006C0005FF6C00A0029F8140006C0006FF6C006C0005FF6C00A0029F8240006C006C0006FF6C0005FF6C00A002
+	activate_pattern
+	;;
+	p12)
+	pattern=00DB01249F8040009F8140FFC000
+	activate_pattern
+	;;
+	p13)
+	pattern=000300040018002000C001009F8040009F8140006C006C0006FF6C0005FF6C00A0049F8240009F8340006C0006FF6C006C0005FF6C00A0049F8440009F85400006FF6C006C006C0005FF6C00A004
+	activate_pattern
+	;;
+	p14)
+	pattern=00C0010000180020000300049F8040009F81400006FF6C006C006C0005FF6C00A0049F8240009F8340006C0006FF6C006C0005FF6C00A0049F8440009F8540006C006C0006FF6C0005FF6C00A004
+	activate_pattern
+	;;
+	p15)
+	pattern=0009001200240040008001009F8140009F8240329F804000E00408FF09FF6000600060006000A0069F8440009F8540329F8340FFE08009FF08FF09FF08FFA006
+	activate_pattern
+	;;
+	p16)
+	pattern=0040008001000009001200249F8140009F8240329F804000E10009FF08FF09FF08FFA0069F8440009F8540329F834000E002600060006000600008FF09FFA006
+	activate_pattern
+	;;
+	p17)
+	pattern=0005000200280010014000809F8140009F8040006C006C000A966C0009966C00A0049F8340009F8240006C000A966C006C0009966C00A0049F8540009F8440000A966C006C006C0009966C00A004
+	activate_pattern
+	;;
+	p18)
+	pattern=0140008000280010000500029F8140009F8040000A966C006C006C0009966C00A0049F8340009F8240006C000A966C006C0009966C00A0049F8540009F8440006C006C000A966C0009966C00A004
+	activate_pattern
+	;;
+	p19)
+	pattern=003F01C09F80400006FF05FF6C006C006600A0029F8140006C0004FF07FF6C006600A002
+	activate_pattern
+	;;
+	p20)
+	pattern=01C0003F9F8040006C0004FF07FF6C006600A0029F8140006C00660006FF6C0005FFA002
+	activate_pattern
+	;;
+	p21)
+	pattern=01FF9F80400004FF05FFA002
+	activate_pattern
+	;;
+	p22)
+	pattern=01B600499F8040009F8140FFC000
+	activate_pattern
+	;;
+	p23)
+	pattern=01B600929F8040009F8140FFC000
+	activate_pattern
+	;;
+	p24)
+	pattern=014000809F8040009F8140FFC000
+	activate_pattern
+	;;
+	*)
+	printf "\n"
+	echo "Invalid pattern!"
+	exit 1
+	;;
+esac
+
+exit 0
