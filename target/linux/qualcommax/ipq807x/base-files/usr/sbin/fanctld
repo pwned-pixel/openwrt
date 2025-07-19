@@ -1,0 +1,132 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+dlog() {
+	[ "$debug" = '1' ] && echo "$@" >> /tmp/fanctld.log
+}
+
+load_config() {
+	config_load 'fanctld'
+
+	config_get active "global" "Enabled"
+	config_get debug "global" "Debug"
+	config_get delay "global" "Delay"
+	config_get hit_level "global" "Hits"
+	config_get temp_trip "global" "Temp"
+	config_get temp_hyst "global" "Hyst"
+}
+
+temp_path=$(grep -i tpath /etc/config/fanctld | sed 's/option//g' | sed "s/'//g" | awk '{print $2}' | sed 's/\s\+/\n/g')
+temp_delta=$(grep -i tdelta /etc/config/fanctld | sed 's/option//g' | sed "s/'//g" | awk '{print $2}' | sed 's/\s\+/\n/g')
+
+temp_real_calc() {
+	temp_get=$(for i in $temp_path; do cat "$i" 2>/dev/null || echo 0; done)
+	temp_delta=$(for i in $temp_delta; do echo "$i"; done)
+
+	c=1
+	set -- $temp_get
+		while [ -n "$1" ]; do
+			eval temp"$c"="$1"
+			c=$((c+1))
+			shift
+		done
+
+	c=1
+	set -- $temp_delta
+		while [ -n "$1" ]; do
+			eval tdelta"$c"="$1"
+			c=$((c+1))
+			shift
+		done
+
+	if [ -n "$temp1" ] && [ -n "$tdelta1" ]; then treal1=$(($temp1 - $tdelta1)); else treal1=0; fi
+	if [ -n "$temp2" ] && [ -n "$tdelta2" ]; then treal2=$(($temp2 - $tdelta2)); else treal2=0; fi
+	if [ -n "$temp3" ] && [ -n "$tdelta3" ]; then treal3=$(($temp3 - $tdelta3)); else treal3=0; fi
+	if [ -n "$temp4" ] && [ -n "$tdelta4" ]; then treal4=$(($temp4 - $tdelta4)); else treal4=0; fi
+	if [ -n "$temp5" ] && [ -n "$tdelta5" ]; then treal5=$(($temp5 - $tdelta5)); else treal5=0; fi
+	if [ -n "$temp6" ] && [ -n "$tdelta6" ]; then treal6=$(($temp6 - $tdelta6)); else treal6=0; fi
+	if [ -n "$temp7" ] && [ -n "$tdelta7" ]; then treal7=$(($temp7 - $tdelta7)); else treal7=0; fi
+	if [ -n "$temp8" ] && [ -n "$tdelta8" ]; then treal8=$(($temp8 - $tdelta8)); else treal8=0; fi
+	if [ -n "$temp9" ] && [ -n "$tdelta9" ]; then treal9=$(($temp9 - $tdelta9)); else treal9=0; fi
+	if [ -n "$temp10" ] && [ -n "$tdelta10" ]; then treal10=$(($temp10 - $tdelta10)); else treal10=0; fi
+	if [ -n "$temp11" ] && [ -n "$tdelta11" ]; then treal11=$(($temp11 - $tdelta11)); else treal11=0; fi
+	if [ -n "$temp12" ] && [ -n "$tdelta12" ]; then treal12=$(($temp12 - $tdelta12)); else treal12=0; fi
+	if [ -n "$temp13" ] && [ -n "$tdelta13" ]; then treal13=$(($temp13 - $tdelta13)); else treal13=0; fi
+}
+
+load_config
+temp_clr=$((($temp_trip)-($temp_hyst)))
+
+. /lib/functions.sh
+
+sensorpath() {
+    local id=$1
+    local temp_path temp_delta
+
+    config_get temp_path "$id" tpath
+    config_get temp_delta "$id" tdelta
+
+    echo "Tpath: $temp_path / Tdelta: $temp_delta"
+}
+
+config_load fanctld
+config_foreach sensorpath sensor
+
+check_temps() {
+	temp_real_calc
+	dlog "$treal1 $treal2 $treal3 $treal4 $treal5 $treal6 $treal7 $treal8 $treal9 $treal10 $treal11 $treal12 $treal13"
+	if [ "$treal1" -ge "$temp_trip" ] || [ "$treal2" -ge "$temp_trip" ] || [ "$treal3" -ge "$temp_trip" ] || [ "$treal4" -ge "$temp_trip" ] || [ "$treal5" -ge "$temp_trip" ] || [ "$treal6" -ge "$temp_trip" ] || [ "$treal7" -ge "$temp_trip" ] || [ "$treal8" -ge "$temp_trip" ] || [ "$treal9" -ge "$temp_trip" ] || [ "$treal10" -ge "$temp_trip" ] || [ "$treal11" -ge "$temp_trip" ] || [ "$treal12" -ge "$temp_trip" ] || [ "$treal13" -ge "$temp_trip" ]; then
+		echo 2
+	elif [ "$treal1" -le "$temp_clr" ] && [ "$treal2" -le "$temp_clr" ] && [ "$treal3" -le "$temp_clr" ] && [ "$treal4" -le "$temp_clr" ] && [ "$treal5" -le "$temp_clr" ] && [ "$treal6" -le "$temp_clr" ] && [ "$treal7" -le "$temp_clr" ] && [ "$treal8" -le "$temp_clr" ] && [ "$treal9" -le "$temp_clr" ] && [ "$treal10" -le "$temp_clr" ] && [ "$treal11" -le "$temp_clr" ] && [ "$treal12" -le "$temp_clr" ] && [ "$treal13" -le "$temp_clr" ]; then
+		echo 1
+	else
+		echo 0
+	fi
+}
+
+fan_status() {
+	fanctl status
+}
+
+sensor_names=$(grep -i name /etc/config/fanctld | sed 's/option//g' | awk '{print $2}' | tr "\n" " ")
+load_config
+dlog "----- fanctld debug log -----"
+dlog "enabled=""$active"", debug=""$debug"", delay=""$delay"", hit_level=""$hit_level"", temp_trip=""$temp_trip"", temp_hyst=""$temp_hyst"""
+dlog "$sensor_names"
+exec 1>> /tmp/fanctld.log
+
+trip_hits=0
+clr_hits=0
+
+while true; do
+	sleep "$delay"
+
+	result=$(check_temps)
+
+	if [ "$result" = '2' ]; then
+		trip_hits=$((trip_hits+1))
+	elif [ "$result" = '1' ]; then
+		clr_hits=$((clr_hits+1))
+	else
+		trip_hits=0
+		clr_hits=0
+	fi
+
+	if [ $trip_hits -ge "$hit_level" ]; then
+		trip_hits=0
+		if [ "$(fan_status)" = 'disabled' ]; then
+			fanctl start
+			temp_centit=$(($temp_trip/1000))
+			logger -p info -t fanctld "Fan switch on! Temperature reached ""$temp_centit"""$'\xc2\xb0'C"."
+		fi
+
+	elif [ $clr_hits -ge "$hit_level" ]; then
+		clr_hits=0
+		if [ "$(fan_status)" = 'enabled' ]; then
+			fanctl stop
+			temp_centic=$(($temp_clr/1000))
+			logger -p info -t fanctld "Fan switch off! Temperature reached ""$temp_centic"""$'\xc2\xb0'C"."
+		fi
+	fi
+done
