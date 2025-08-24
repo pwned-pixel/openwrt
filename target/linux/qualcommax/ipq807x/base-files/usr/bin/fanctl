@@ -1,0 +1,56 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+get_gpio() {
+	config_load 'fanctld'
+	config_get FAN_GPIO "global" "Gpio"
+	config_get HWMON "global" "Hwmon"
+		[ -z "${FAN_GPIO}" ] || {
+			return 1
+		}
+		[ -f "/sys/devices/platform/${FAN_GPIO}/hwmon/${HWMON}/fan1_target" ] || {
+			return 1
+		}
+}
+
+get_gpio
+GPIO="${FAN_GPIO}"
+
+usage() {
+	echo "usage: $0 [start|stop|status]"
+}
+
+fan_start() {
+	echo 1 > /sys/devices/platform/${FAN_GPIO}/hwmon/${HWMON}/fan1_target
+}
+
+fan_stop() {
+	echo 0 > /sys/devices/platform/${FAN_GPIO}/hwmon/${HWMON}/fan1_target
+}
+
+fan_status() {
+	status=`cat /sys/devices/platform/${FAN_GPIO}/hwmon/${HWMON}/fan1_target`
+		if [ $status = 0 ]; then
+			echo "disabled"
+		else
+			echo "enabled"
+		fi
+}
+
+case $1 in
+  start)
+    fan_start
+    ;;
+  stop)
+    fan_stop
+    ;;
+  status)
+    fan_status
+    ;;
+  *)
+    usage
+    ;;
+esac
+
+exit 0
