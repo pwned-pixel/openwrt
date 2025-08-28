@@ -1,0 +1,23 @@
+
+. /lib/functions/system.sh
+
+ipq807x_enable_scaling_gov()
+
+{
+	local board="$1"
+
+	case "$board" in
+
+	zyxel,nbg7815)
+		/etc/init.d/scaling_governor enable
+		;;
+	*)
+		echo "Nothing to do"
+		;;
+
+	esac
+
+}
+
+exit 0
+
