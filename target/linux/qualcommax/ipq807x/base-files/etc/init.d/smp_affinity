@@ -104,6 +104,32 @@ enable_affinity_ipq807x() {
   set_affinity 'edma_rxfill'                   3
   set_affinity 'edma_rxdesc'                   3
   set_affinity 'edma_misc'                     3
+
+  # assign xhci to core 3
+  set_affinity 'xhci-hcd:usb1'                 2
+  set_affinity 'xhci-hcd:usb3'                 2
+}
+
+enable_affinity_lan() {
+  for i in /sys/class/net/lan*/queues/rx-0/rps_cpus ; do echo "1" > "$i"; done
+  for i in /sys/class/net/lan*/queues/rx-1/rps_cpus ; do echo "2" > "$i"; done
+  for i in /sys/class/net/lan*/queues/rx-2/rps_cpus ; do echo "4" > "$i"; done
+  for i in /sys/class/net/lan*/queues/rx-3/rps_cpus ; do echo "8" > "$i"; done
+
+  for i in /sys/class/net/lan*/queues/tx-0/xps_cpus ; do echo "1" > "$i"; done
+  for i in /sys/class/net/lan*/queues/tx-1/xps_cpus ; do echo "2" > "$i"; done
+  for i in /sys/class/net/lan*/queues/tx-2/xps_cpus ; do echo "4" > "$i"; done
+  for i in /sys/class/net/lan*/queues/tx-3/xps_cpus ; do echo "8" > "$i"; done
+
+  for i in /sys/class/net/10g*/queues/rx-0/rps_cpus ; do echo "1" > "$i"; done
+  for i in /sys/class/net/10g*/queues/rx-1/rps_cpus ; do echo "2" > "$i"; done
+  for i in /sys/class/net/10g*/queues/rx-2/rps_cpus ; do echo "4" > "$i"; done
+  for i in /sys/class/net/10g*/queues/rx-3/rps_cpus ; do echo "8" > "$i"; done
+
+  for i in /sys/class/net/10g*/queues/tx-0/xps_cpus ; do echo "1" > "$i"; done
+  for i in /sys/class/net/10g*/queues/tx-1/xps_cpus ; do echo "2" > "$i"; done
+  for i in /sys/class/net/10g*/queues/tx-2/xps_cpus ; do echo "4" > "$i"; done
+  for i in /sys/class/net/10g*/queues/tx-3/xps_cpus ; do echo "8" > "$i"; done
 }
 
 boot() {
@@ -118,5 +144,5 @@ boot() {
   [ "$enable"     -eq 1 ] && enable=true     || enable=false
   [ "$enable_log" -eq 1 ] && enable_log=true || enable_log=false
 
-  $enable && enable_affinity_ipq807x
+  $enable && enable_affinity_ipq807x && enable_affinity_lan
 }
