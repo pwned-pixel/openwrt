@@ -307,6 +307,7 @@
 		compatible = "ethernet-phy-ieee802.3-c45";
 		reg = <8>;
 		reset-gpios = <&tlmm 63 GPIO_ACTIVE_LOW>;
+		#thermal-sensor-cells = <0>;
 
 		nvmem-cells = <&aqr_fw>;
 		nvmem-cell-names = "firmware";
@@ -416,9 +417,10 @@
 	pinctrl-names = "default";
 	status = "okay";
 
-	tmp103@70 {
+	tmp103: tmp103@70 {
 		compatible = "ti,tmp103";
 		reg = <0x70>;
+		#thermal-sensor-cells = <0>;
 	};
 
 	lp5569@32 {
