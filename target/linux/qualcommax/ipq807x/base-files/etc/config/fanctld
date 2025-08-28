@@ -1,0 +1,39 @@
+
+config fanctld 'global'
+	option Enabled '1'
+	option Gpio 'gpio_fan'
+	option Hwmon 'hwmon13'
+	option Debug '0'
+	option Delay '5'
+	option Hits '5'
+	option Temp '76000'
+	option Hyst '3500'
+
+config sensor
+	option name 'phy0'
+	option tpath '/sys/devices/platform/soc@0/c000000.wifi/ieee80211/phy0/hwmon*/temp1_input'
+	option tdelta '1000'
+config sensor
+	option name 'phy1'
+	option tpath '/sys/devices/platform/soc@0/c000000.wifi/ieee80211/phy1/hwmon*/temp1_input'
+	option tdelta '0'
+config sensor
+	option name 'phy2'
+	option tpath '/sys/devices/platform/soc@0/c000000.wifi/ieee80211/phy2/hwmon*/temp1_input'
+	option tdelta '2000'
+config sensor
+	option name 'nsstop'
+	option tpath '/sys/class/thermal/thermal_zone0/temp'
+	option tdelta '0'
+config sensor
+	option name 'aqr113c'
+	option tpath '/sys/class/thermal/thermal_zone12/temp'
+	option tdelta '0'
+config sensor
+	option name 'board'
+	option tpath '/sys/class/thermal/thermal_zone13/temp'
+	option tdelta '0'
+config sensor
+	option name 'cpu'
+	option tpath '/sys/class/thermal/thermal_zone9/temp'
+	option tdelta '0'
