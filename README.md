@@ -6,7 +6,7 @@ Real-time monitoring and management dashboard for the Airoha AN7581 SoC on OpenW
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)
 ![OpenWrt](https://img.shields.io/badge/OpenWrt-24.10%2B-brightgreen.svg)
-![Version](https://img.shields.io/badge/version-1.0.1-orange.svg)
+![Version](https://img.shields.io/badge/version-1.0.4-orange.svg)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/rchen14b)
 
 ## Screenshots
@@ -39,18 +39,26 @@ Real-time monitoring and management dashboard for the Airoha AN7581 SoC on OpenW
   - NPU vs DMA path badge
   - TX retry rate percentage with color-coded thresholds
 
+### Monitoring Safety and Refresh Control
+- Hardware and debugfs probes are protected against blocking reads
+- Unsupported SoCs are identified before platform-specific register access
+- CPU/NPU, PPE/frame-engine, and WiFi station/token polling have independent refresh rates
+- Defaults are 3 seconds, 20 seconds, and 30 seconds respectively
+- Temporary high-refresh monitoring runs for one minute and then returns to the selected rates
+- VLAN-tagged and PPPoE-tagged bridge netfilter states are reported without changing configuration
+
 ### Frame Engine Visualization
 - **PSE Shared Buffer** usage bar (congestion indicator)
 - **GDM port cards** with live TX/RX packet counters and drop counts:
   - GDM1: Internal Switch (1G LAN3/4)
   - GDM2: WAN (USXGMII 10G)
   - GDM4: LAN2 (USXGMII 10G)
-- **CDM offload ratio** bars — HW-forwarded (PPE) vs CPU-path packets
+- **CDM path counters** — TX, CPU RX, hardware-forwarded RX, and drops
 - **PSE Port Queue Status** grid (P0-P9) with IQ/OQ queue depths and drop counts
 
 ### PPE Flow Offload Table
 - First 100 PPE entries with state (BND/UNB), type (IPv4/IPv6/L2B), 5-tuple, and MAC addresses
-- Auto-refreshes every 5 seconds
+- Refresh rate is configurable independently from the other monitoring data
 
 ### Theme Support
 - Auto-detects dark/light mode by sampling page background luminance at runtime
@@ -63,7 +71,7 @@ Real-time monitoring and management dashboard for the Airoha AN7581 SoC on OpenW
 - Airoha AN7581 target (`@TARGET_airoha`)
 - PPE debugfs (`/sys/kernel/debug/ppe/entries`)
 - **`devmem`** busybox applet — required for Frame Engine register access and CPU overclock (`CONFIG_BUSYBOX_DEFAULT_DEVMEM=y`)
-- WiFi token_info debugfs for per-band WiFi stats (`/sys/kernel/debug/ieee80211/phy0/mt76/token_info`)
+- WiFi token_info debugfs for per-band WiFi stats (`/sys/kernel/debug/ieee80211/phy*/mt76/token_info`)
 - Optional: [air_tools](https://github.com/merbanan/air_tools) scripts for additional Frame Engine debugging
 
 ## Installation
@@ -103,7 +111,7 @@ ssh root@router 'chmod +x /usr/libexec/rpcd/luci.airoha_npu && /etc/init.d/rpcd 
 | CPU frequency | `/sys/devices/system/cpu/cpufreq/policy0/` | Yes |
 | Overclock PLL | `devmem` registers (0x1fa202b4, 0x1fa202b8) | devmem |
 | PPE entries | `/sys/kernel/debug/ppe/{entries,bind}` | Yes |
-| WiFi token pool | `/sys/kernel/debug/ieee80211/phy0/mt76/token_info` | Optional |
+| WiFi token pool | `/sys/kernel/debug/ieee80211/phy*/mt76/token_info` | Optional |
 | WiFi station stats | `iw dev <iface> station dump` | Optional |
 | Frame Engine (GDM/CDM/PSE) | `devmem` registers (0x1fb50xxx-0x1fb53xxx) | devmem |
 
@@ -140,6 +148,23 @@ luci-app-airoha-npu/
 | `setOverclock` | Direct PLL frequency set | `freq_mhz` |
 
 ## Version History
+
+### v1.0.4
+- Added timeout-protected hardware and debugfs probes
+- Added AN/EN7581 hardware detection before register access
+- Added active mt76 PHY discovery for WiFi station statistics
+- Added bounded PPE output and safer unbound-flow reporting
+- Added independent refresh controls for CPU/NPU, PPE/frame engine, and WiFi data
+- Added one-minute temporary high-refresh monitoring mode
+- Added read-only VLAN and PPPoE bridge netfilter status reporting
+- Replaced the misleading CDM hardware-offload percentage bars with raw path counters and drops
+- Preserved the selected CPU governor when changing CPU frequency
+
+### Attribution
+- Original project: Ryan Chen, https://github.com/rchen14b/luci-app-airoha-npu
+- License: Apache-2.0
+- Later implementation references include Yanghan Ye and Lucas via the relevant changes in https://github.com/YYH2913/openwrt/
+- This version contains local integration and monitoring changes based on the original project and those later implementation references.
 
 ### v1.0.1
 - Unified Frame Engine diagram with architectural layout matching AN7581 data paths

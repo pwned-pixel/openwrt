@@ -3,7 +3,7 @@
 		"description": "Grant access to Airoha SoC status (NPU + CPU + Overclock)",
 		"read": {
 			"ubus": {
-				"luci.airoha_npu": [ "getStatus", "getPpeEntries", "getTokenInfo", "getFrameEngine" ]
+				"luci.airoha_npu": [ "getStatus", "getPpeEntries", "getTokenInfo", "getFrameEngine", "getVlanOffload", "getPPPoEOffload" ]
 			},
 			"file": {
 				"/sys/kernel/debug/ppe/entries": [ "read" ],
