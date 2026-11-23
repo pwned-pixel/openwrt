@@ -1,0 +1,39 @@
+diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
+index e1eff05..18ddedc 100644
+--- a/drivers/base/arch_topology.c
++++ b/drivers/base/arch_topology.c
+@@ -32,6 +32,20 @@ static bool scale_freq_invariant;
+ DEFINE_PER_CPU(unsigned long, capacity_freq_ref) = 0;
+ EXPORT_PER_CPU_SYMBOL_GPL(capacity_freq_ref);
+ 
++static unsigned int cpufreq_table_max_freq(struct cpufreq_policy *policy)
++{
++	struct cpufreq_frequency_table *pos;
++	unsigned int max_freq = 0;
++
++	if (!policy->freq_table)
++		return policy->cpuinfo.max_freq;
++
++	cpufreq_for_each_valid_entry(pos, policy->freq_table)
++	max_freq = max(max_freq, pos->frequency);
++
++	return max(max_freq, policy->cpuinfo.max_freq);
++}
++
+ static bool supports_scale_freq_counters(const struct cpumask *cpus)
+ {
+ 	return cpumask_subset(cpus, &scale_freq_counters_mask);
+@@ -397,9 +411,11 @@ init_cpu_capacity_callback(struct notifier_block *nb,
+ 	cpumask_andnot(cpus_to_visit, cpus_to_visit, policy->related_cpus);
+ 
+ 	for_each_cpu(cpu, policy->related_cpus) {
+-		per_cpu(capacity_freq_ref, cpu) = policy->cpuinfo.max_freq;
++		per_cpu(capacity_freq_ref, cpu) =
++		cpufreq_table_max_freq(policy);
++
+ 		freq_inv_set_max_ratio(cpu,
+-				       per_cpu(capacity_freq_ref, cpu) * HZ_PER_KHZ);
++							   per_cpu(capacity_freq_ref, cpu) * HZ_PER_KHZ);
+ 	}
+ 
+ 	if (cpumask_empty(cpus_to_visit)) {
